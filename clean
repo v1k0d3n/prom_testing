@@ -1,0 +1,5 @@
+#!/bin/bash
+
+inventory=${INVENTORY:-testing.ini}
+
+ansible-playbook -i ${inventory} clean.yaml $@

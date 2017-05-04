@@ -1,0 +1,143 @@
+---
+- name: If cleanup_enabled is true, stop the Kubelet service
+  when:
+    (cleanup_enabled)
+  systemd:
+    name: kubelet.service
+    state: stopped
+    enabled: no
+  ignore_errors: true
+
+- name: If cleanup_enabled is true, stop the bootkube service
+  when:
+    (cleanup_enabled) and (inventory_hostname in groups['bootstrap'])
+  systemd:
+    name: bootkube
+    state: stopped
+    enabled: no
+    daemon_reload: yes
+  ignore_errors: true
+
+- name: If cleanup_enabled is true, stop all remaining kubernetes docker artifacts
+  when:
+    cleanup_enabled
+  shell: docker stop $(docker ps -a | grep {{ item }}| cut -c1-20 | xargs docker stop)
+  no_log: true
+  ignore_errors: yes
+  with_items:
+    - k8s
+    - bootkube
+
+- name: If cleanup_enabled is true, remove all remaining kubernetes docker artifacts
+  when:
+    cleanup_enabled
+  shell: docker rm -f $(docker ps -a | grep {{ item }}| cut -c1-20 | xargs docker stop)
+  no_log: true
+  ignore_errors: yes
+  with_items:
+    - k8s
+    - bootkube
+
+- name: If cleanup_enabled is true, flush /opt/cni
+  when:
+    cleanup_enabled
+  file:
+    path: /opt/cni
+    state: absent
+
+- name: If cleanup_enabled is true, flush any /etc/cni configs
+  when:
+    cleanup_enabled
+  file:
+    path: /etc/{{ item }}
+    state: absent
+  with_items:
+    - kubernetes
+    - cni
+
+- name: If cleanup_enabled is true, flush any /etc/cni configs
+  when:
+    cleanup_enabled
+  file:
+    path: /var/run/{{ item }}
+    state: absent
+  with_items:
+    - kubernetes
+    - calico
+    - canal
+    - flannel
+    - romana
+    - weave
+
+- name: If cleanup_enabled is true, flush deployed binaries
+  when:
+    cleanup_enabled
+  file:
+    path: /usr/local/bin/{{ item }}
+    state: absent
+  with_items:
+    - kubelet
+    - kubectl
+    - bootkube
+    - calicoctl
+
+- name: If cleanup_enabled is true, flush deployed binaries
+  when:
+    cleanup_enabled
+  file:
+    path: /etc/systemd/system/{{ item }}
+    state: absent
+  with_items:
+    - kubelet.service
+    - bootkube
+
+- name: If cleanup_enabled is true, remove old bootkube and kubectl rendered files
+  when:
+    cleanup_enabled
+  file:
+    path: /home/{{ ansible_user }}/.{{ item }}
+    state: absent
+  with_items:
+    - bootkube
+    - kube
+
+- name: If cleanup_enabled is true, clean up any tmp files
+  when:
+    cleanup_enabled
+  file:
+    path: /tmp/{{ item }}
+    state: absent
+  with_items:
+    - bootkube
+
+- name: Remove any remaining interfaces
+  command: ip link set {{ item }} down
+  with_items:
+    - flannel.1
+  ignore_errors: yes
+
+- name: Reboot the hosts to clean up any remaining Kubernetes volume mounts
+  shell: sleep 2 && shutdown -r now "Ansible administrator is taking the system down NOW!"
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+- name: Wait for the server to come back online
+  become: false
+  local_action: wait_for
+  args:
+    host: "{{ inventory_hostname }}"
+    port: 22
+    state: started
+    delay: 30
+    timeout: 300
+
+- name: If cleanup_enabled is true, clean up any remaining kubernetes directories
+  when:
+    cleanup_enabled
+  file:
+    path: /var/lib/{{ item }}
+    state: absent
+  with_items:
+    - kubelet
+    - etcd

@@ -1,0 +1,40 @@
+---
+#Wait for Kubeapi Server to come up
+- action: shell kubectl --kubeconfig=/etc/kubernetes/kubeconfig get pods --all-namespaces | grep kube-apiserver
+  when:
+    - (bootstrap_enabled == 'true') and (inventory_hostname in groups['master'])
+  register: kubeapi_output
+  until: kubeapi_output.stdout.find("Running") != -1
+  retries: 40
+  delay: 15
+
+- pause:
+    seconds: 10
+    prompt: "Allowing Kuberrnetes Bootkube control plane to come up before deploying SDN"
+
+- name: Upload etcdless Calico manifest to the remote Kubernetes master
+  when:
+    - (bootstrap_enabled == 'true') and (kube_sdn == 'calico') and (inventory_hostname in groups['master'])
+  template:
+    src: calico-self-hosted.yaml.j2
+    dest: /tmp/bootkube/calico-etcdless.yaml
+
+#- name: Deploy etcdless Calico manifest
+#  when:
+#    - (bootstrap_enabled == 'true') and (kube_sdn == 'calico') and (inventory_hostname in groups['master'])
+#  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig create -f /tmp/bootkube/calico-etcdless.yaml
+
+- name: Deploy self-hosted with etcd Calico manifest
+  when:
+    - (bootstrap_enabled == 'true') and (kube_sdn == 'calico') and (inventory_hostname in groups['master'])
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig create -f /tmp/bootkube/calico-etcdless.yaml
+
+
+#Wait for cluster to stabilize across all  nodes
+- action: shell kubectl --kubeconfig=/etc/kubernetes/kubeconfig get pods --all-namespaces
+  when:
+    - (bootstrap_enabled == 'true') and (inventory_hostname in groups['master'])
+  register: cluster_stable
+  until: '"ContainerCreating" not in cluster_stable.stdout'
+  retries: 40
+  delay: 15

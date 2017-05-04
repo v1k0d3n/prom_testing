@@ -1,0 +1,54 @@
+---
+- name: Clean up any previous bootkube deployments
+  file:
+    path: /home/{{ ansible_user }}/.bootkube
+    state: absent
+
+##########################################
+# BOOTKUBE REMOTE GENERATION OF ASSETS:
+  ## TODO: Remove home directory references, and make more agnostic:
+- name: Render bootkube on the remote bootstrap host
+  when:
+    - (bootstrap_enabled == 'true') and (bootkube_render == 'true') and (inventory_hostname in groups['bootstrap'])
+  command: /usr/bin/docker run -v /home/ubuntu:/home/ubuntu quay.io/coreos/bootkube:v0.4.1 /bootkube render --asset-dir=/home/ubuntu/.bootkube --experimental-self-hosted-etcd --etcd-servers=http://10.3.0.15:12379 --api-servers=https://192.168.4.79:443
+#  command: "/usr/bin/docker run -v /home/ubuntu:/home/ubuntu quay.io/coreos/bootkube:{{ bootkube_version }} /bootkube render --asset-dir=/home/{{ ansible_user }}/.bootkube {{ bootkube_flags }}"
+
+- name: Remove default rendered flannel assets
+  when:
+    - (bootstrap_enabled == 'true') and (bootkube_render == 'true') and (inventory_hostname in groups['bootstrap'])
+  file:
+    path: /home/{{ ansible_user }}/.bootkube/manifests/{{ item }}.yaml
+    state: absent
+  with_items:
+    - kube-flannel
+    - kube-flannel-cfg
+
+##########################################
+# BRING YOUR OWN BOOTKUBE RENDERED ASSETS:
+- name: Ensure pre-generated bootkube assets exist on the bootstrap master
+  when:
+    - (bootstrap_enabled == 'true') and (bootkube_render == 'false') and (inventory_hostname in groups['bootstrap'])
+  copy:
+    src: '../files/bootkube'
+    dest: '/home/{{ ansible_user }}/.bootkube'
+    owner: root
+    group: root
+    mode: 0644
+
+##########################################
+# TRANSFER LOCAL ASSETS TO /etc/kubernetes:
+- name: Copy rendered Kubernetes auth manifest to /etc/kubernetes/manifests
+  when:
+    - (bootstrap_enabled == 'true')
+  copy:
+    src: '/home/{{ ansible_user }}/.bootkube/auth/kubeconfig'
+    dest: '/etc/kubernetes/'
+    remote_src: True
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy rendered or pregenerated Kubernetes manifests to /etc/kubernetes/
+  when:
+    - (bootstrap_enabled == 'true')
+  shell: cp -a /home/{{ ansible_user }}/.bootkube/* /etc/kubernetes/

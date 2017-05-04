@@ -1,0 +1,19 @@
+---
+#- name: placeholder for weave
+#  debug: msg="starting weave installation"
+
+#- name: Upload Weave manifests to /etc/kubernetes/manifests directory
+#  when: (kube_sdn == 'weave')
+#  template:
+#    src: net-weave.yaml.j2
+#    dest: /etc/kubernetes/manifests/net-weave.yaml
+
+#- name: Deploy the Weave manifests
+#  when: (kube_sdn == 'weave')
+#  shell: kubectl apply -f /etc/kubernetes/manifests/net-weave.yaml
+#  ignore_errors: true
+#  register: deploy_weave
+
+#- name: weave deployment stdout
+#  debug: msg={{ deploy_weave }}
+#  ignore_errors: true

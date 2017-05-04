@@ -1,0 +1,33 @@
+---
+- name: placeholder for canal
+  debug: msg="starting Canal installation"
+
+- name: Deploy the Canal deployment manifests
+  when: (kube_sdn == 'canal')
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig apply -f https://gist.githubusercontent.com/v1k0d3n/39c496287bdcd4a5a6aa439050fb7332/raw/cfb20fef7c7404df5dd8a6fe958a1f870ea7b423/canal.yaml
+  register: deploy_canal
+  ignore_errors: true
+
+- name: canal deployment stdout
+  debug: msg={{ deploy_canal }}
+  ignore_errors: true
+
+- name: Deploy the Canal etcd manifests
+  when: (kube_sdn == 'canal')
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig apply -f https://gist.githubusercontent.com/v1k0d3n/0e6ff14cb913c93f0f3ec5c4cceb4915/raw/de8b1d9d3c4018179852ffad28e0c66c22ff724b/canal-etcd.yaml
+  register: deploy_canal_etcd
+  ignore_errors: true
+
+- name: canal etcd stdout
+  debug: msg={{ deploy_canal_etcd }}
+  ignore_errors: true
+
+- name: Deploy the Canal configuration manifest
+  when: (kube_sdn == 'canal')
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig apply -f https://gist.githubusercontent.com/v1k0d3n/4b58246e88b404fad5b17da95876e61b/raw/b2b205d56de2afad5e9ba768f7d0826c4c13599c/calico-cfg.yaml
+  register: deploy_canal_cfg
+  ignore_errors: true
+
+- name: canal configuration stdout
+  debug: msg={{ deploy_canal_cfg }}
+  ignore_errors: true

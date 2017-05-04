@@ -1,0 +1,3 @@
+---
+- include: bootkube-packages.yaml
+- include: bootkube-render.yaml

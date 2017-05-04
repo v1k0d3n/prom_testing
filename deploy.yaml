@@ -1,0 +1,34 @@
+- hosts: all
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  roles:
+    - common
+
+- hosts: workers
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  roles:
+    - workers
+
+- hosts: bootstrap
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  roles:
+    - bootkube-render
+
+- hosts: bootstrap
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  roles:
+    - bootkube-start
+
+- hosts: bootstrap
+  remote_user: ubuntu
+  become: yes
+  become_method: sudo
+  roles:
+    - deploy-network

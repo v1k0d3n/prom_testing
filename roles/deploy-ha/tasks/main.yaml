@@ -1,0 +1,3 @@
+---
+- include: poll-kubernetes.yaml
+- include: deploy-cluster-ha.yaml

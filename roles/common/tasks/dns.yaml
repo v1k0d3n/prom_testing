@@ -1,0 +1,6 @@
+---
+- name: Insert Temporary Hosts File Entry for FQDN Resolution
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ hostvars[groups['master'][0]]['ansible_default_ipv4']['address'] }} {{ api_server_fqdn }}"
+    state: present

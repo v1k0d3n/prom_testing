@@ -1,0 +1,7 @@
+---
+#- include: net-calico.yaml
+#- include: net-canal.yaml
+#- include: net-flannel.yaml
+#- include: net-romana.yaml
+#- include: net-weave.yaml
+- include: net-canal-test.yaml

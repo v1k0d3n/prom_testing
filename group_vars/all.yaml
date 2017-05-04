@@ -1,0 +1,46 @@
+#Default Override-able variables for bootstrap role
+bootstrap_enabled: "false"
+cleanup_enabled: "true"
+bootstrap_os: "ubuntu"
+ansible_user: "ubuntu"
+#ansible_ssh_pass="password"
+
+# For DNS Resilliency, override this with FQDN in your environment which resolves to all "master" servers
+api_server_fqdn: "cluster-ha.default.svc.cluster.local"
+cluster_domain: "cluster.local"
+cluster_dns: "192.168.1.70,8.8.8.8,10.3.0.10"
+cluster_master_labels: "node-role.kubernetes.io/master='',node-role.kubernetes.io/canal-node=true"
+cluster_worker_labels: "node-role.kubernetes.io/master='',node-role.kubernetes.io/canal-node=true"
+bootkube_flags: "--experimental-self-hosted-etcd --etcd-servers=http://10.3.0.15:12379 --api-servers=https://192.168.4.79:443"
+
+# Kubernetes versions:
+kube_version: "v1.6.2"
+bootkube_version: "v0.4.1"
+hyperkube_version: "v1.6.1"
+kubelet_version: "v1.6.1"
+kube_controller_manager_version: "v1.6.1"
+kube_label: "openstack-control-plane"
+kube_sdn: "canal"
+kube_cluster_cidr: "10.2.0.0/16"
+kube_cluster_ip: "10.3.0.10"
+# "10.244.0.0/16"
+
+# SDN/CNI Parameters:
+cni_version: "v0.5.2"
+calico_cni_plugin_version: "v1.6.1"
+calicoctl_version: "v1.1.1"
+calico_policy_version: "v0.5.4"
+
+# Calico BGP Peering Options:
+calico_peer1: 10.23.21.2
+calico_peer2: 10.23.21.3
+
+## Kubernetes Add-Ons:
+# Optional Items: kube_dashboard, kube_helm (more to come).
+addons_enabled: false
+addons:
+  - dashboard
+  - helm
+  - osh
+  - ceph
+  - maas

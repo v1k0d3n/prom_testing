@@ -1,0 +1,51 @@
+---
+- name: placeholder for canal
+  debug: msg="starting Canal installation"
+
+- name: Upload Canal deployment manifests to /etc/kubernetes/manifests directory
+  when: (kube_sdn == 'canal')
+  template:
+    src: net-canal.yaml.j2
+    dest: /etc/kubernetes/manifests/net-canal.yaml
+
+- name: Upload Canal etcd manifests to /etc/kubernetes/manifests directory
+  when: (kube_sdn == 'canal')
+  template:
+    src: net-canal-etcd.yaml.j2
+    dest: /etc/kubernetes/manifests/net-canal-etcd.yaml
+
+- name: Upload Canal configuration manifest to /etc/kubernetes/manifests directory
+  when: (kube_sdn == 'canal')
+  template:
+    src: net-canal-cfg.yaml.j2
+    dest: /etc/kubernetes/manifests/net-canal-cfg.yaml
+
+- name: Deploy the Canal deployment manifests
+  when: (kube_sdn == 'canal')
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig apply -f /etc/kubernetes/manifests/net-canal.yaml --overwrite
+  register: deploy_canal
+  ignore_errors: true
+
+- name: canal deployment stdout
+  debug: msg={{ deploy_canal }}
+  ignore_errors: true
+
+- name: Deploy the Canal etcd manifests
+  when: (kube_sdn == 'canal')
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig apply -f /etc/kubernetes/manifests/net-canal-etcd.yaml --overwrite
+  register: deploy_canal_etcd
+  ignore_errors: true
+
+- name: canal etcd stdout
+  debug: msg={{ deploy_canal_etcd }}
+  ignore_errors: true
+
+- name: Deploy the Canal configuration manifest
+  when: (kube_sdn == 'canal')
+  shell: kubectl --kubeconfig=/etc/kubernetes/kubeconfig apply -f /etc/kubernetes/manifests/net-canal-cfg.yaml --overwrite
+  register: deploy_canal_cfg
+  ignore_errors: true
+
+- name: canal configuration stdout
+  debug: msg={{ deploy_canal_cfg }}
+  ignore_errors: true

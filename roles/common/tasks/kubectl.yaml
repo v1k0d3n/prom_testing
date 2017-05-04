@@ -1,0 +1,12 @@
+---
+- name: Download the kubectl binary
+  when: inventory_hostname in groups['master']
+  get_url:
+    url: "http://storage.googleapis.com/kubernetes-release/release/{{ kube_version }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+
+- name: Set kubectl permissions
+  when: inventory_hostname in groups['master']
+  file:
+    path: /usr/local/bin/kubectl
+    mode: 0755

@@ -1,0 +1,15 @@
+---
+- include: packages-ubuntu.yaml
+  when: bootstrap_os == "ubuntu"
+
+- include: packages-centos.yaml
+  when: bootstrap_os == "centos"
+
+- include: packages-centos.yaml
+  when: bootstrap_os == "coreos"
+
+- include: kubectl.yaml
+  when: inventory_hostname in groups['master']
+
+
+#- include: dns.yaml

@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cluster-ha
+  namespace: kube-system
+spec:
+  clusterIP: None
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cluster-ha
+  namespace: kube-system
+subsets:
+- addresses:
+{% for node in groups['master'] %}
+  - ip: {{ hostvars[node]['ansible_default_ipv4']['address'] }}
+{% endfor %}
+  ports:
+  - port: 443

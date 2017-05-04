@@ -1,0 +1,18 @@
+---
+- name: Ensure that a temp directory exists
+  file:
+    path: /tmp/bootkube
+    state: directory
+
+- name: Download and install the bootkube binary
+  unarchive:
+    src: https://github.com/kubernetes-incubator/bootkube/releases/download/{{ bootkube_version }}/bootkube.tar.gz
+    dest: /tmp/bootkube
+    remote_src: True
+
+- name: Move bootkube binary to /usr/local/bin/
+  copy:
+    src: /tmp/bootkube/bin/linux/bootkube
+    dest: /usr/local/bin/bootkube
+    remote_src: True
+    mode: 0755

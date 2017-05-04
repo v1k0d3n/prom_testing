@@ -1,0 +1,2 @@
+---
+- include: bootkube-service.yaml
